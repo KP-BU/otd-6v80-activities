@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning the intervention — OTD 6V80 Module 2</title>
+<style>
+  :root {
+    --green: #154734; --gold: #FFB81C;
+    --ink: #12352a; --muted: #5f7068;
+    --soft-green: #e7f1ed; --soft-gold: #fff4d8; --line: #cfddd7;
+    --danger: #b42318; --danger-soft: #ffe5e2;
+    --success: #1f7a46; --success-soft: #e2f5e8;
+    --shadow: 0 22px 60px rgba(21, 71, 52, 0.16);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Proxima Nova", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at top left, rgba(255,184,28,0.28), transparent 30rem),
+      linear-gradient(135deg, #f7fbf8 0%, #eef7f3 100%);
+    min-height: 100vh;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ---- Layout ------------------------------------------------------------
+     Phone-first single column. At the 1366x1366 LMS frame the container
+     widens and vertical rhythm tightens, so activities fit without the
+     retrofitted !important layer the previous course needed.              */
+  main {
+    width: min(100%, 46rem);
+    margin: 0 auto;
+    padding: clamp(1rem, 3vw, 1.75rem) clamp(0.85rem, 3vw, 1.5rem) 1.25rem;
+  }
+  @media (min-width: 1100px) and (min-height: 900px) {
+    main { width: min(100%, 1180px); padding-top: 1rem; padding-bottom: 1rem; }
+    h1 { font-size: 1.7rem !important; margin-bottom: 0.25rem !important; }
+    .card { padding: 0.85rem 1.1rem; margin-bottom: 0.7rem; }
+    .lede { margin-bottom: 0.2rem; }
+    /* Opt-in helpers: an activity adds these to its own containers. */
+    .fit-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; align-items: start; }
+    .fit-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; align-items: start; }
+    .fit-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.55rem; align-items: start; }
+    .fit-2 > *, .fit-3 > *, .fit-4 > * { margin-bottom: 0 !important; }
+    .fit-span { grid-column: 1 / -1; }
+  }
+
+  /* Course banner. Decorative — alt="" and role="presentation" keep it out of
+     the accessibility tree, since it carries no information a student needs.
+     It scales with the container at its natural 20:3 ratio, so it costs about
+     177px of height in the wide frame and only ~56px on a phone. */
+  .course-banner {
+    display: block; width: 100%; height: auto;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin-bottom: clamp(0.7rem, 2vw, 1rem);
+  }
+  @media (min-width: 1100px) and (min-height: 900px) {
+    .course-banner { margin-bottom: 0.55rem; }
+  }
+  @media print { .course-banner { display: none; } }
+
+  .card {
+    background: rgba(255,255,255,0.94);
+    border: 2px solid rgba(21,71,52,0.1);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    margin-bottom: clamp(0.8rem, 2.2vw, 1.15rem);
+  }
+  .eyebrow {
+    display: inline-block; background: var(--soft-gold); color: var(--green);
+    font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em;
+    text-transform: uppercase; border-radius: 999px;
+    padding: 0.3rem 0.85rem; margin: 0 0 0.65rem;
+  }
+  h1 { color: var(--green); font-size: clamp(1.35rem, 4.5vw, 1.85rem); line-height: 1.2; margin: 0 0 0.5rem; }
+  h2 { color: var(--green); font-size: 1.1rem; margin: 0 0 0.5rem; }
+  h3 { color: var(--green); font-size: 0.98rem; margin: 0 0 0.35rem; }
+  p { line-height: 1.55; margin: 0 0 0.6rem; }
+  .lede { color: var(--muted); font-weight: 600; }
+  .hint { color: var(--muted); font-size: 0.88rem; }
+
+  /* ---- Controls ---------------------------------------------------------- */
+  .btn {
+    min-height: 2.9rem; padding: 0 1.1rem;
+    border: 2px solid var(--green); border-radius: 8px;
+    background: #fff; color: var(--green);
+    font: inherit; font-weight: 800; font-size: 0.95rem; cursor: pointer;
+    transition: background 150ms ease, color 150ms ease, opacity 150ms ease;
+  }
+  .btn:not(:disabled):hover, .btn:not(:disabled):focus-visible { background: var(--green); color: #fff; outline: none; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn.primary { background: var(--gold); border-color: var(--gold); }
+  .btn.primary:not(:disabled):hover, .btn.primary:not(:disabled):focus-visible { background: var(--green); border-color: var(--green); color: #fff; }
+  .controls { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.7rem; }
+  .controls .btn { flex: 1 1 10rem; }
+
+  select, input[type="text"], textarea {
+    font: inherit; color: var(--ink); background: #fff;
+    border: 2px solid var(--line); border-radius: 6px;
+    padding: 0.45rem 0.55rem; min-height: 2.6rem;
+  }
+  select:focus-visible, input:focus-visible, textarea:focus-visible,
+  button:focus-visible, [tabindex]:focus-visible, a:focus-visible {
+    outline: 3px solid var(--gold); outline-offset: 2px;
+  }
+
+  /* State signalling always pairs colour with a mark or text (WCAG 1.4.1). */
+  .is-correct { border-color: var(--success) !important; background: var(--success-soft); }
+  .is-wrong   { border-color: var(--danger) !important;  background: var(--danger-soft); }
+  .mark { font-weight: 900; margin-right: 0.3rem; }
+  .mark.ok { color: var(--success); }
+  .mark.no { color: var(--danger); }
+
+  .progress-track { height: 0.55rem; background: var(--soft-green); border-radius: 999px; overflow: hidden; margin-top: 0.6rem; }
+  .progress-fill { height: 100%; width: 0%; background: var(--green); transition: width 220ms ease; }
+
+  /* ---- Completion summary (must report what actually happened) ---------- */
+  #summary[hidden] { display: none; }
+  #summary { border-color: var(--success); }
+  #summary h2 { display: flex; align-items: center; gap: 0.4rem; }
+  .summary-score { font-size: 1.05rem; font-weight: 900; color: var(--green); margin: 0 0 0.6rem; }
+  .summary-list { margin: 0 0 0.6rem; padding-left: 1.1rem; }
+  .summary-list li { margin-bottom: 0.25rem; line-height: 1.45; }
+  .summary-group { margin-bottom: 0.7rem; }
+  .summary-group h3 { margin-bottom: 0.2rem; }
+
+  /* ---- Two-part activities ---------------------------------------------
+     Some modules combine two activities into one sequential experience.
+     Only one part is on screen at a time, so a merged activity costs no more
+     height than the taller of its two halves.                             */
+  .part-steps { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .part-step {
+    flex: 1 1 12rem; text-align: left;
+    border: 2px solid var(--line); border-radius: 8px;
+    background: rgba(255,255,255,0.9); color: var(--muted);
+    padding: 0.5rem 0.75rem; font: inherit; font-weight: 700; font-size: 0.9rem;
+    cursor: pointer; transition: border-color 150ms ease, color 150ms ease;
+  }
+  .part-step .part-n { display: block; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .part-step[aria-current="true"] { border-color: var(--green); color: var(--green); background: var(--soft-green); }
+  .part-step[data-state="done"] { border-color: var(--success); color: var(--success); }
+  .part-step[data-state="done"] .part-n::after { content: " ✓"; }
+  .part-step[data-state="locked"] { opacity: 0.55; cursor: not-allowed; }
+  .part-step[data-state="locked"] .part-n::after { content: " (locked)"; }
+  .part-panel[hidden] { display: none; }
+
+  .visually-hidden {
+    position: absolute !important; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  /* ---- Finish bar -------------------------------------------------------- */
+  .finish-bar {
+    position: sticky; bottom: 0; z-index: 30;
+    padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom));
+    background: rgba(247, 251, 248, 0.92);
+    backdrop-filter: blur(6px); border-top: 2px solid var(--line);
+  }
+  .finish-button {
+    display: block; width: min(100%, 22rem); margin: 0 auto; min-height: 3rem;
+    border: 2px solid var(--gold); border-radius: 8px;
+    background: var(--gold); color: var(--green);
+    font: inherit; font-weight: 900; font-size: 1.05rem; cursor: pointer;
+    transition: background 160ms ease, color 160ms ease, opacity 160ms ease;
+  }
+  .finish-button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .finish-button:not(:disabled):hover, .finish-button:not(:disabled):focus-visible {
+    background: var(--green); border-color: var(--green); color: #ffffff; outline: none;
+  }
+  @keyframes finish-pop { 0%{transform:scale(1)} 50%{transform:scale(1.04)} 100%{transform:scale(1)} }
+  .finish-button.enabled-pop { animation: finish-pop 600ms ease 2; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  @media (max-width: 520px) {
+    .controls { flex-direction: column; }
+    .controls .btn { flex: none; width: 100%; }
+    select, input[type="text"] { width: 100%; }
+  }
+
+.leo-setting { margin: 0 0 12px; padding: 10px 14px; border-left: 5px solid var(--gold); background: rgba(255,184,28,.12); border-radius: 0 8px 8px 0; line-height: 1.5; font-size: .95rem; }
+.leo-setting strong { color: var(--green); }
+.leo-path { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; padding: 0; list-style: none; }
+.leo-path li { flex: 1 1 150px; padding: 6px 10px; border-radius: 8px; border: 2px solid rgba(21,71,52,.2); font-size: .85rem; font-weight: 600; background: #fff; }
+.leo-path li.is-current { border-color: var(--green); background: var(--green); color: #fff; }
+.leo-path li.is-done { border-color: var(--green); }
+.leo-path li .mark { margin-left: 4px; }
+.leo-node { margin: 0 0 4px; font-size: 1.05rem; color: var(--green); }
+.leo-q { margin: 0 0 10px; line-height: 1.5; }
+.leo-options { display: grid; gap: 8px; margin: 10px 0; }
+.leo-opt { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; padding: 10px 12px; border: 2px solid rgba(21,71,52,.35); border-radius: 8px; background: #fff; font: inherit; line-height: 1.4; cursor: pointer; }
+.leo-opt:hover:not(:disabled) { border-color: var(--green); background: rgba(21,71,52,.05); }
+.leo-opt:disabled { cursor: default; opacity: .75; }
+.leo-opt .leo-letter { flex: 0 0 auto; font-weight: 700; color: var(--green); }
+.leo-opt.is-correct { border-color: #1b7a3c; background: #e8f5ec; opacity: 1; }
+.leo-opt.is-wrong { border-color: #b3261e; background: #fbe9e7; opacity: 1; }
+.leo-feedback { margin: 10px 0 0; padding: 10px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,.12); background: #f7f7f5; line-height: 1.45; }
+.leo-feedback.ok { border-color: #1b7a3c; background: #e8f5ec; }
+.leo-feedback.no { border-color: #b3261e; background: #fbe9e7; }
+.leo-feedback[hidden] { display: none; }
+.leo-consequence { margin: 10px 0 0; padding: 10px 14px; border-radius: 8px; background: rgba(21,71,52,.07); border: 1px solid rgba(21,71,52,.25); line-height: 1.5; }
+.leo-consequence strong { color: var(--green); }
+.leo-ending ul { margin: 8px 0 0; padding-left: 22px; line-height: 1.5; }
+.leo-ending li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<main>
+  
+  <header class="card">
+    <span class="eyebrow">OTD 6V80 · Level II Fieldwork II · Module 2 · Weeks 3 and 4</span>
+    <h1>Planning the intervention</h1>
+    <p class="lede">You are settling into your site and starting to plan interventions yourself. Choose what you do at each turn; feedback explains the clinical reasoning.</p>
+  </header>
+
+<p class="leo-setting"><strong>Setting:</strong> Outpatient clinic, week 3 of 12. Ms. Reyes, 58, is six weeks past a right distal radius fracture. Her cast is off, her wrist is stiff, and her grip is weak. She is a hair stylist who wants to get back to work and to cooking for her family. Your FWE has asked you to draft her intervention plan.</p>
+
+<ol class="leo-path" id="leo-path" aria-label="Decision points">
+  <li data-node="0">1 · Starting the plan</li>
+  <li data-node="1">2 · Frame of reference</li>
+  <li data-node="2">3 · Occupation-based</li>
+  <li data-node="3">4 · Writing the goal</li>
+  <li data-node="4">5 · When progress stalls</li>
+</ol>
+
+<section class="card" id="leo-stage" aria-live="polite">
+  <h2 class="leo-node" id="leo-title"></h2>
+  <p class="leo-q" id="leo-q"></p>
+  <div class="leo-options" id="leo-options" role="group" aria-labelledby="leo-title"></div>
+  <div class="leo-feedback" id="leo-feedback" hidden></div>
+  <div class="leo-consequence" id="leo-consequence" hidden></div>
+  <div class="controls">
+    <button type="button" class="btn primary" id="leo-next" hidden>Continue</button>
+  </div>
+</section>
+
+<section class="card leo-ending" id="leo-ending" hidden>
+  <h2>Ending</h2>
+  <p>By the end of week 4 Ms. Reyes is styling a mannequin head for 12 minutes without stopping, her home program fits her morning, and your FWE asks you to draft the next new client's plan without her notes.</p>
+  <p><strong>Recap — planning the intervention:</strong></p>
+  <ul>
+    <li>Start from the client's priorities and the evaluation results.</li>
+    <li>Match the frame of reference to the barrier, and keep the plan tied to real occupations.</li>
+    <li>Write goals you can measure, and change the plan when the data says to.</li>
+  </ul>
+  <div class="controls">
+    <button type="button" class="btn" id="leo-restart">Start over</button>
+  </div>
+  <p class="hint">Starting over lets you walk the scenario again for practice. Your first-attempt score has already been recorded and will not change.</p>
+</section>
+
+  <section id="summary" class="card" hidden aria-labelledby="summary-heading">
+    <h2 id="summary-heading">How you did</h2>
+    <p class="summary-score" id="summary-score"></p>
+    <div id="summary-detail"></div>
+    <p class="hint" id="summary-note"></p>
+  </section>
+</main>
+
+<div id="live-region" class="visually-hidden" role="status" aria-live="polite"></div>
+
+<footer class="finish-bar">
+  <button type="button" id="finish-button" class="finish-button" disabled>Finish</button>
+</footer>
+
+<script>
+/* ---- SCORM 1.2 wrapper. Degrades silently to standalone preview. -------- */
+const SCORM = (() => {
+  let api = null, initialized = false, finished = false;
+  function findApi(win) {
+    let current = win, attempts = 0;
+    try {
+      while (current && !current.API && current.parent && current.parent !== current && attempts < 500) {
+        attempts += 1; current = current.parent;
+      }
+      if (current && current.API) return current.API;
+      if (win.opener && !win.opener.closed) return findApi(win.opener);
+    } catch (e) { return null; }
+    return null;
+  }
+  function call(method, ...args) {
+    if (!api || typeof api[method] !== "function") return "false";
+    try { return api[method](...args); } catch (e) { return "false"; }
+  }
+  function init() {
+    if (initialized) return true;
+    api = findApi(window);
+    if (!api) return false;
+    initialized = call("LMSInitialize", "") === "true";
+    if (initialized) {
+      const prior = call("LMSGetValue", "cmi.core.lesson_status");
+      if (prior !== "completed" && prior !== "passed") {
+        call("LMSSetValue", "cmi.core.lesson_status", "incomplete");
+      }
+      call("LMSSetValue", "cmi.core.score.min", "0");
+      call("LMSSetValue", "cmi.core.score.max", "100");
+      call("LMSCommit", "");
+    }
+    return initialized;
+  }
+  function setScore(raw) {
+    if (!initialized) return;
+    call("LMSSetValue", "cmi.core.score.raw", String(raw));
+    call("LMSCommit", "");
+  }
+  function finishActivity(score) {
+    if (finished) return;
+    if (initialized) {
+      call("LMSSetValue", "cmi.core.lesson_status", "completed");
+      if (score !== null && score !== undefined) call("LMSSetValue", "cmi.core.score.raw", String(score));
+      call("LMSCommit", "");
+      call("LMSFinish", "");
+    }
+    finished = true;
+  }
+  function unloadSafety() {
+    if (finished || !initialized) return;
+    call("LMSCommit", ""); call("LMSFinish", ""); finished = true;
+  }
+  window.addEventListener("pagehide", unloadSafety);
+  window.addEventListener("beforeunload", unloadSafety);
+  return { init, setScore, finishActivity };
+})();
+SCORM.init();
+
+/* ---- Activity API -------------------------------------------------------
+   The only surface an activity script needs. Handles the Finish button,
+   the live region, the score, and the completion summary, so no activity
+   re-implements them (or gets them subtly wrong).                        */
+const Activity = (() => {
+  const finishBtn = document.getElementById("finish-button");
+  const live = document.getElementById("live-region");
+  const summaryEl = document.getElementById("summary");
+  const scoreEl = document.getElementById("summary-score");
+  const detailEl = document.getElementById("summary-detail");
+  const noteEl = document.getElementById("summary-note");
+  let firstScore = null;   // frozen on first completion so review passes can't inflate it
+  let ready = false;
+
+  function announce(msg) { live.textContent = ""; setTimeout(() => { live.textContent = msg; }, 40); }
+
+  function setReady(on, msg) {
+    ready = !!on;
+    finishBtn.disabled = !ready;
+    if (ready) {
+      finishBtn.classList.add("enabled-pop");
+      setTimeout(() => finishBtn.classList.remove("enabled-pop"), 1400);
+      if (msg) announce(msg);
+    }
+  }
+
+  /* Report the truth: right and missed are arrays of plain strings.
+     Passing neither still renders an honest "you finished" line.        */
+  function summarize({ score = null, right = [], missed = [], note = "" } = {}) {
+    if (firstScore === null && score !== null) firstScore = score;
+    const shown = firstScore === null ? null : firstScore;
+    if (shown !== null) {
+      const total = right.length + missed.length;
+      scoreEl.textContent = total
+        ? `${right.length} of ${total} correct on your first attempt — ${shown}%`
+        : `First-attempt score: ${shown}%`;
+    } else {
+      scoreEl.textContent = "Activity complete.";
+    }
+    detailEl.innerHTML = "";
+    const group = (title, items, cls) => {
+      if (!items.length) return;
+      const wrap = document.createElement("div");
+      wrap.className = "summary-group";
+      const h = document.createElement("h3");
+      h.innerHTML = `<span class="mark ${cls === "ok" ? "ok" : "no"}">${cls === "ok" ? "✓" : "✗"}</span>${title}`;
+      const ul = document.createElement("ul");
+      ul.className = "summary-list";
+      items.forEach(t => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+      wrap.appendChild(h); wrap.appendChild(ul); detailEl.appendChild(wrap);
+    };
+    group(`You got these right (${right.length})`, right, "ok");
+    group(`You missed these (${missed.length})`, missed, "no");
+    noteEl.textContent = note || "";
+    summaryEl.hidden = false;
+    summaryEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (shown !== null) SCORM.setScore(shown);
+  }
+
+  finishBtn.addEventListener("click", () => {
+    if (!ready) return;
+    SCORM.finishActivity(firstScore);
+    finishBtn.disabled = true;
+    finishBtn.textContent = "Finished ✓";
+    announce("Activity finished and reported as complete.");
+  });
+
+  return { setReady, announce, summarize, get score() { return firstScore; } };
+})();
+
+/* ---- Multi-part coordinator --------------------------------------------
+   For modules that merge two activities into one. Each part reports here
+   instead of calling Activity.setReady / Activity.summarize itself, and only
+   the last part to finish unlocks Finish. Without this, part one would enable
+   the Finish button and a student could submit half an activity.         */
+const Parts = (() => {
+  let expected = 0;
+  const results = new Map();
+  const listeners = [];
+
+  function expect(n) { expected = n; }
+  function isDone(i) { return results.has(i); }
+  function onDone(fn) { listeners.push(fn); }
+
+  function done(index, { score = null, right = [], missed = [], label = "" } = {}) {
+    if (results.has(index)) return;                 // first result stands
+    results.set(index, { score, right, missed, label });
+    listeners.forEach(fn => { try { fn(index); } catch (e) {} });
+    if (results.size < expected) {
+      Activity.announce(`Part ${index} complete. Part ${index + 1} is now available.`);
+      return;
+    }
+    // Merge both parts' results, keeping each item attributed to its part so
+    // the summary says which half a student actually struggled with.
+    // NB: these locals must NOT be named `right` / `missed` — those are already
+    // bound by this function's destructured parameter, and redeclaring them with
+    // const is a SyntaxError that kills the whole inline script silently.
+    const allRight = [], allMissed = [];
+    let weighted = 0, items = 0;
+    [...results.entries()].sort((a, b) => a[0] - b[0]).forEach(([i, r]) => {
+      const tag = r.label ? `${r.label}: ` : `Part ${i}: `;
+      r.right.forEach(t => allRight.push(tag + t));
+      r.missed.forEach(t => allMissed.push(tag + t));
+      const n = r.right.length + r.missed.length;
+      if (r.score !== null && n) { weighted += r.score * n; items += n; }
+      else if (r.score !== null) { weighted += r.score; items += 1; }
+    });
+    const finalScore = items ? Math.round(weighted / items) : null;
+    Activity.setReady(true, "Both parts complete. You can finish the activity.");
+    Activity.summarize({
+      score: finalScore, right: allRight, missed: allMissed,
+      note: "This activity had two parts; the summary above covers both.",
+    });
+  }
+  return { expect, done, isDone, onDone };
+})();
+
+(function () {
+  var NODES = [
+  {
+    "name": "Node 1 — Where do you start the intervention plan?",
+    "title": "Node 1 — Where do you start the intervention plan?",
+    "q": "Your FWE asks you to draft the intervention plan for Ms. Reyes. Where do you start?",
+    "options": [
+      "Start from her priorities and the evaluation results: what she needs and wants to do, and what is limiting it.",
+      "Copy the clinic's standard wrist fracture protocol.",
+      "List the exercises you know best from your first rotation.",
+      "Ask your FWE to write this one so you can see how it is done."
+    ],
+    "correct": 0,
+    "feedback": [
+      "An accurate plan comes from the evaluation and the client's own priorities. Everything else is chosen to serve those.",
+      "A protocol is a useful reference, but it does not know that she holds a blow dryer for hours a day.",
+      "What you know best is not always what this client needs.",
+      "Drafting it yourself and getting feedback is the learning. Ask for a review, not a replacement."
+    ],
+    "consequence": "You list her two priorities, styling hair and cooking, next to the findings that limit them: wrist extension, grip strength and pain with sustained holding."
+  },
+  {
+    "name": "Node 2 — Which frame of reference guides the remediation?",
+    "title": "Node 2 — Which frame of reference guides the remediation?",
+    "q": "Limited wrist range of motion and grip strength are the main barriers. Which frame of reference best guides the remediation part of the plan?",
+    "options": [
+      "Sensory integration.",
+      "Cognitive-behavioral.",
+      "Biomechanical.",
+      "Model of Human Occupation (MOHO), used alone."
+    ],
+    "correct": 2,
+    "feedback": [
+      "Sensory integration addresses how sensory input is processed and organized. That is not the barrier here.",
+      "Cognitive-behavioral approaches target thoughts and behaviors. Her limits are in range and strength.",
+      "The biomechanical frame of reference addresses range of motion, strength and endurance, which is what is limiting her.",
+      "MOHO helps you understand her roles, habits and motivation, and it belongs in your thinking. On its own it does not tell you how to restore range and strength."
+    ],
+    "consequence": "You plan graded range-of-motion and strengthening work, and you note her roles and routines so the plan fits her life."
+  },
+  {
+    "name": "Node 3 — How do you make the plan occupation-based?",
+    "title": "Node 3 — How do you make the plan occupation-based?",
+    "q": "Your FWE reads the draft and says it is all putty and stretching. How do you revise it?",
+    "options": [
+      "Add more repetitions and a heavier putty.",
+      "Replace the exercises with craft activities.",
+      "Leave it as written, because exercise is supported by evidence.",
+      "Add graded practice of her real tasks, such as holding a blow dryer and sectioning hair, alongside the strengthening."
+    ],
+    "correct": 3,
+    "feedback": [
+      "More of the same does not connect the plan to what she needs to do.",
+      "Activity for its own sake is not occupation-based either. The tasks need to be hers.",
+      "Preparatory exercise has a place, but an OT plan ties it to occupational performance.",
+      "Practicing her actual work and home tasks, graded for demand, is what makes the plan occupational therapy."
+    ],
+    "consequence": "Ms. Reyes brings her own blow dryer and shears to the next visit. She lasts four minutes before her wrist tires, which becomes your baseline."
+  },
+  {
+    "name": "Node 4 — Which goal is written best?",
+    "title": "Node 4 — Which goal is written best?",
+    "q": "Which goal is written best?",
+    "options": [
+      "Ms. Reyes will improve her grip strength.",
+      "In 4 weeks, Ms. Reyes will blow-dry and style one client's hair for 20 minutes using her right hand, with pain no higher than 2 out of 10.",
+      "Ms. Reyes will feel more confident using her right hand.",
+      "Therapist will provide strengthening three times a week."
+    ],
+    "correct": 1,
+    "feedback": [
+      "It names an impairment but no amount, time frame or occupation, so no one can tell when it is met.",
+      "It names the client, the occupation, a measurable level of performance, the conditions and a time frame.",
+      "Confidence matters, but this cannot be measured as written and is not tied to a task.",
+      "This describes what the therapist will do. A goal describes what the client will do."
+    ],
+    "consequence": "Your FWE co-signs the plan with one change: she adds a second goal for preparing a family meal."
+  },
+  {
+    "name": "Node 5 — What do you do when progress stalls?",
+    "title": "Node 5 — What do you do when progress stalls?",
+    "q": "In week 4 her wrist extension has not changed in two weeks. She tells you she skips the home program because it hurts and her days are full. What do you do?",
+    "options": [
+      "Tell her the plan only works if she does the exercises.",
+      "Increase the intensity of the clinic sessions to make up for it.",
+      "Ask what gets in the way, adjust the home program to fit her day, and bring the data and your proposed change to your FWE.",
+      "Keep the plan as it is and re-measure in two more weeks."
+    ],
+    "correct": 2,
+    "feedback": [
+      "She already knows that. It does not solve pain or a full schedule.",
+      "Pushing harder in clinic risks more pain and still leaves the home program undone.",
+      "The plan is meant to change when the data and the client tell you it is not working. Bring your FWE a proposal, not only a problem.",
+      "Two more weeks of the same plan is likely to give you two more weeks of the same result."
+    ],
+    "consequence": "You cut the home program to three short tasks built into her morning routine and add heat before stretching. Two weeks later her wrist extension has improved."
+  }
+];
+  var LETTERS = ["a", "b", "c", "d"];
+  var RECAP = "Recap: Start from the client's priorities and the evaluation results → Match the frame of reference to the barrier, and keep the plan tied to real occupations → Write goals you can measure, and change the plan when the data says to.";
+
+  var pathEl = document.getElementById("leo-path");
+  var titleEl = document.getElementById("leo-title");
+  var qEl = document.getElementById("leo-q");
+  var optsEl = document.getElementById("leo-options");
+  var fbEl = document.getElementById("leo-feedback");
+  var conEl = document.getElementById("leo-consequence");
+  var nextBtn = document.getElementById("leo-next");
+  var stageEl = document.getElementById("leo-stage");
+  var endingEl = document.getElementById("leo-ending");
+  var restartBtn = document.getElementById("leo-restart");
+
+  var state;
+  var summarized = false;                            // summarize() runs exactly once, ever
+  var firstAttempt = [null, null, null, null, null]; // first-run, first-pick correctness per node
+
+  function freshState() {
+    return { idx: 0, phase: "pick", attempts: 0, done: [false, false, false, false, false] };
+  }
+
+  function setFeedback(kind, text) {
+    fbEl.className = "leo-feedback " + kind;
+    fbEl.innerHTML = (kind === "ok" ? '<span class="mark ok" aria-hidden="true">✓</span> ' : '<span class="mark no" aria-hidden="true">✗</span> ') + text;
+    fbEl.hidden = false;
+    Activity.announce((kind === "ok" ? "Correct. " : "Not correct. ") + text);
+  }
+
+  function renderPath() {
+    var items = pathEl.querySelectorAll("li");
+    for (var i = 0; i < items.length; i++) {
+      items[i].className = (i === state.idx && !state.done[i] ? "is-current" : "") + (state.done[i] ? " is-done" : "");
+      var base = items[i].textContent.replace(/\s*✓\s*done$/, "");
+      items[i].innerHTML = base + (state.done[i] ? ' <span class="mark ok">✓ done</span>' : "");
+    }
+  }
+
+  function renderNode() {
+    var n = NODES[state.idx];
+    titleEl.textContent = n.title;
+    qEl.textContent = n.q;
+    fbEl.hidden = true;
+    conEl.hidden = true;
+    nextBtn.hidden = true;
+    state.phase = "pick";
+    state.attempts = 0;
+    optsEl.innerHTML = "";
+    for (var i = 0; i < n.options.length; i++) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "leo-opt";
+      b.setAttribute("data-idx", i);
+      var letter = document.createElement("span");
+      letter.className = "leo-letter";
+      letter.textContent = LETTERS[i] + ")";
+      var text = document.createElement("span");
+      text.textContent = n.options[i];
+      b.appendChild(letter);
+      b.appendChild(text);
+      optsEl.appendChild(b);
+    }
+    renderPath();
+    stageEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function markButton(idx, cls) {
+    var b = optsEl.querySelector('[data-idx="' + idx + '"]');
+    if (!b) return;
+    b.className = "leo-opt " + cls;
+    var glyph = document.createElement("span");
+    glyph.className = cls === "is-correct" ? "mark ok" : "mark no";
+    glyph.setAttribute("aria-hidden", "true");
+    glyph.textContent = cls === "is-correct" ? "✓" : "✗";
+    b.insertBefore(glyph, b.firstChild);
+    b.disabled = true;
+  }
+
+  function disableAll() {
+    var bs = optsEl.querySelectorAll("button");
+    for (var i = 0; i < bs.length; i++) bs[i].disabled = true;
+  }
+
+  function onPick(idx) {
+    if (state.phase !== "pick") return;
+    var n = NODES[state.idx];
+    var ok = idx === n.correct;
+    if (state.attempts === 0 && firstAttempt[state.idx] === null) firstAttempt[state.idx] = ok;
+    state.attempts++;
+    if (!ok) {
+      markButton(idx, "is-wrong");
+      setFeedback("no", n.feedback[idx] + " Choose again.");
+      return;
+    }
+    state.phase = "resolved";
+    state.done[state.idx] = true;
+    markButton(idx, "is-correct");
+    disableAll();
+    setFeedback("ok", n.feedback[idx]);
+    var last = state.idx === NODES.length - 1;
+    conEl.innerHTML = "<strong>" + (last ? "Ending." : "What happens next.") + "</strong> " + n.consequence;
+    conEl.hidden = false;
+    renderPath();
+    nextBtn.textContent = last ? "See the recap" : "Continue";
+    nextBtn.hidden = false;
+    nextBtn.focus();
+    if (last) complete();
+  }
+
+  function complete() {
+    Activity.setReady(true, "You have reached the ending — you may finish the activity.");
+    if (summarized) return;
+    summarized = true;
+    var right = [], missed = [];
+    for (var i = 0; i < NODES.length; i++) {
+      (firstAttempt[i] === true ? right : missed).push(NODES[i].name);
+    }
+    var score = Math.round(right.length / NODES.length * 100);
+    var note = "First-attempt accuracy: " + right.length + " of 5 decision points. " + RECAP;
+    Activity.summarize({ score: score, right: right, missed: missed, note: note });
+  }
+
+  function onNext() {
+    if (state.phase !== "resolved") return;
+    if (state.idx < NODES.length - 1) {
+      state.idx++;
+      renderNode();
+      return;
+    }
+    stageEl.hidden = true;
+    endingEl.hidden = false;
+    endingEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    restartBtn.focus();
+    Activity.announce("Ending reached. By the end of week 4 Ms. Reyes is styling a mannequin head for 12 minutes without stopping, her home program fits her morning, and your FWE asks you to draft the next new client's plan without her notes.");
+  }
+
+  function restart() {
+    // Resets scenario state only; firstAttempt / summarized stay untouched so the recorded score is frozen.
+    state = freshState();
+    endingEl.hidden = true;
+    stageEl.hidden = false;
+    renderNode();
+    Activity.announce("Scenario restarted for practice. Your recorded score does not change.");
+  }
+
+  optsEl.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-idx]");
+    if (!b || b.disabled) return;
+    onPick(parseInt(b.getAttribute("data-idx"), 10));
+  });
+  nextBtn.addEventListener("click", onNext);
+  restartBtn.addEventListener("click", restart);
+
+  state = freshState();
+  renderNode();
+})();
+</script>
+<div id="frv-activity" data-id="s02"></div>
+<script src="review.js"></script>
+</body>
+</html>
